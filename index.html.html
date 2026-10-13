@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Food Community of Practice</title>
+<style>
+:root{
+  --p:#A100FF; --p2:#7500C0; --p3:#460073;
+  --lav:#F3EFF6; --lav2:#E9E4EC; --lilac:#DCAFFF; --lilac2:#F7EEFF;
+  --ink:#17131B; --ink2:#46404D; --mute:#77707D;
+  --line:#D9D3DE; --line2:#ECE8EF; --page:#FAF9FB;
+  --hdr:64px; --sub:46px; --ftr:44px; --r:6px;
+  font-size:clamp(14px,1vw,22px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:"Graphik","Graphik Web",Arial,"Helvetica Neue",Helvetica,sans-serif;color:var(--ink);background:var(--page);overflow:hidden;-webkit-font-smoothing:antialiased;line-height:1.45}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:var(--p2)}
+:focus-visible{outline:2px solid var(--p);outline-offset:2px;border-radius:3px}
+
+/* Header */
+header.top{position:fixed;inset:0 0 auto 0;height:var(--hdr);background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:2rem;padding:0 2rem;z-index:30}
+header.top::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--p)}
+.brand{display:flex;flex-direction:column;line-height:1.15;min-width:14rem}
+.brand b{font-size:1.18rem;font-weight:800;letter-spacing:-.01em}
+.brand span{font-size:.9rem;color:var(--mute)}
+nav.sections{display:flex;gap:.15rem;flex:1;overflow-x:auto;scrollbar-width:none}
+nav.sections::-webkit-scrollbar{display:none}
+nav.sections button{display:flex;align-items:baseline;gap:.45rem;padding:.55rem .85rem;border-radius:4px;font-size:1.02rem;color:var(--ink2);white-space:nowrap;position:relative}
+nav.sections button i{font-style:normal;font-size:.85rem;color:var(--mute);font-weight:700}
+nav.sections button:hover{background:var(--lav)}
+nav.sections button[aria-current="true"]{color:var(--p3);font-weight:700;background:var(--lav)}
+nav.sections button[aria-current="true"] i{color:var(--p)}
+nav.sections button[aria-current="true"]::after{content:"";position:absolute;left:.85rem;right:.85rem;bottom:-.62rem;height:3px;background:var(--p);border-radius:2px}
+.date{font-size:.88rem;font-weight:700;color:#fff;background:var(--p);padding:.32rem .7rem;border-radius:4px;white-space:nowrap}
+
+/* Footer */
+footer.bottom{position:fixed;inset:auto 0 0 0;height:var(--ftr);background:#fff;border-top:1px solid var(--line);display:flex;align-items:center;gap:1.5rem;padding:0 2rem;z-index:30;font-size:.9rem;color:var(--mute)}
+#secLabel{color:var(--ink);font-weight:700;min-width:15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prog{display:flex;gap:4px;flex:1;max-width:40rem}
+.prog button{flex:1;height:6px;border-radius:3px;background:var(--lav2);transition:background .2s}
+.prog button.gap{margin-left:8px}
+.prog button.done{background:var(--lilac)}
+.prog button.on{background:var(--p)}
+.kbd{display:inline-block;border:1px solid var(--line);border-bottom-width:2px;border-radius:3px;padding:0 .35rem;font-size:.85rem;color:var(--ink2);background:#fff}
+.fnav{display:flex;gap:.4rem;margin-left:auto}
+.fnav button{border:1px solid var(--line);border-radius:4px;padding:.25rem .75rem;font-size:.92rem;color:var(--ink2);background:#fff}
+.fnav button:hover:not(:disabled){border-color:var(--p);color:var(--p3)}
+.fnav button:disabled{opacity:.4;cursor:default}
+
+
+.mono.ph{background-size:cover;background-position:center;background-repeat:no-repeat;background-color:var(--lilac2);box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--lilac)}
+.mono.lg.ph{background-color:var(--lilac2);background-size:cover;background-position:center;background-repeat:no-repeat;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--p)}
+
+/* Sub-navigation */
+.subnav{position:fixed;left:0;right:0;top:var(--hdr);height:var(--sub);background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.35rem;padding:0 2rem;z-index:29;overflow-x:auto;scrollbar-width:none}
+.subnav::-webkit-scrollbar{display:none}
+.subnav .sname{font-size:.95rem;font-weight:800;color:var(--p3);margin-right:.9rem;white-space:nowrap}
+.subnav button{display:flex;align-items:center;gap:.45rem;padding:.38rem .75rem;border-radius:999px;font-size:1rem;color:var(--ink2);white-space:nowrap;border:1px solid transparent;transition:background .15s,border-color .15s,color .15s}
+.subnav button i{font-style:normal;font-size:.85rem;font-weight:700;color:var(--mute)}
+.subnav button:hover{background:var(--lav)}
+.subnav button.done{color:var(--ink2)}
+.subnav button.done i{color:var(--p2)}
+.subnav button[aria-current="true"]{background:var(--p3);color:#fff;font-weight:700}
+.subnav button[aria-current="true"] i{color:var(--lilac)}
+.subnav .sep{width:.5rem;height:1px;background:var(--line);flex-shrink:0}
+.subnav .count{margin-left:auto;font-size:.9rem;color:var(--mute);white-space:nowrap;padding-left:1rem}
+
+/* Views */
+main{position:fixed;top:calc(var(--hdr) + var(--sub));bottom:var(--ftr);left:0;right:0}
+.view{position:absolute;inset:0;overflow-y:auto;padding:1.8rem 2.5rem 1.6rem;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .25s ease,transform .25s ease,visibility 0s .25s}
+.view.on{opacity:1;visibility:visible;transform:none;transition:opacity .35s ease,transform .35s ease}
+.wrap{max-width:112rem;margin:0 auto}
+.vh{display:flex;align-items:flex-end;justify-content:space-between;gap:2rem;margin-bottom:1.3rem}
+.vh h2{font-size:2rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.vh p{color:var(--ink2);font-size:1.15rem;margin-top:.5rem;max-width:60rem}
+.who{display:flex;align-items:center;gap:.6rem;font-size:.95rem;color:var(--ink2);white-space:nowrap}
+.who b{color:var(--ink)}
+.who .mono{width:2rem;height:2rem;font-size:.85rem}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r)}
+.hbar{background:var(--p3);color:#fff;font-weight:700;font-size:.98rem;padding:.6rem 1rem;border-radius:var(--r) var(--r) 0 0}
+.tbc{display:inline-flex;align-items:center;font-size:.9rem;color:var(--mute);font-style:italic;border:1px dashed #BDB5C4;border-radius:3px;padding:0 .45rem;line-height:1.6;white-space:nowrap}
+.freq{display:inline-block;font-size:.88rem;font-weight:700;padding:.15rem .55rem;border-radius:3px;background:var(--lilac2);color:var(--p2);box-shadow:inset 0 0 0 1px var(--lilac);white-space:nowrap}
+.mono{display:inline-grid;place-items:center;width:3rem;height:3rem;border-radius:50%;background:var(--lilac2);color:var(--p3);font-weight:800;font-size:1.12rem;flex-shrink:0;box-shadow:inset 0 0 0 1.5px var(--lilac)}
+.mono.lg{width:5.2rem;height:5.2rem;font-size:1.6rem;background:var(--p3);color:#fff;box-shadow:none}
+
+/* 1.1 Title */
+.ttl{display:grid;grid-template-columns:1.25fr 1fr;gap:4rem;align-items:start;padding-top:1rem}
+.ttl .kicker{font-size:1.12rem;font-weight:700;color:var(--p2);margin-bottom:1.2rem}
+.ttl h1{font-size:clamp(3rem,5.4vw,6.4rem);font-weight:800;letter-spacing:-.035em;line-height:.95}
+.ttl .sess{font-size:1.5rem;font-weight:400;color:var(--ink2);margin-top:1.4rem}
+.ttl .meta{display:flex;gap:.8rem;align-items:center;margin-top:1.2rem;font-size:1.08rem;color:var(--mute)}
+.agenda{background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.agenda .hbar{display:flex;justify-content:space-between}
+.ag-row{display:grid;grid-template-columns:2rem 1fr auto 3.4rem;gap:1rem;align-items:start;padding:.9rem 1rem;border-top:1px solid var(--line2)}
+.ag-row:first-of-type{border-top:0}
+.ag-row .n{font-weight:800;color:var(--p)}
+.ag-row .t{font-weight:700}
+.ag-row .sub{font-size:.95rem;color:var(--mute);margin-top:.25rem;line-height:1.55}
+.ag-row .sp{font-size:.98rem;color:var(--ink2);text-align:right}
+.ag-row .m{font-size:.98rem;font-weight:700;text-align:right;color:var(--p3)}
+.ag-row.go{cursor:pointer;transition:background .15s}
+.ag-row.go:hover{background:var(--lilac2)}
+.strands{width:100%;height:auto;margin-top:2.4rem;display:block;overflow:visible}
+.strands text{font-size:19px;font-weight:700;fill:var(--ink2);font-family:inherit}
+.strands .s{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.strands .glow{fill:none;stroke-width:9;stroke-linecap:round;opacity:.10}
+.strands .bead{opacity:0}
+
+
+/* Landing */
+.landing .wrap{min-height:100%;display:flex;flex-direction:column}
+.land-top{padding-top:1.5rem;max-width:80rem}
+.land-top .kicker{font-size:1.12rem;font-weight:700;color:var(--p2);margin-bottom:1.3rem}
+.land-top h1{font-size:clamp(3.2rem,6vw,7.2rem);font-weight:800;letter-spacing:-.04em;line-height:.95}
+.land-top .lede{font-size:1.3rem;color:var(--ink2);margin-top:1.6rem;max-width:52rem;line-height:1.5}
+.landing .strands{margin-top:auto;padding-top:2.5rem;padding-bottom:1rem}
+.land-meta{display:flex;gap:1.6rem;align-items:baseline;margin-top:2rem;padding-top:1rem;border-top:1px solid var(--line);font-size:1.08rem;color:var(--mute)}
+.land-meta b{color:var(--ink);font-size:1.18rem}
+/* Agenda page */
+.agenda.big .ag-head{display:grid;grid-template-columns:3rem 1fr 14rem 5rem;gap:1.4rem;padding:.8rem 1.6rem;font-size:1.02rem}
+.agenda.big .ag-head span:last-child,.agenda.big .ag-head span:nth-child(3){text-align:right}
+.agenda.big .ag-row{grid-template-columns:3rem 1fr 14rem 5rem;gap:1.4rem;padding:1.5rem 1.6rem;align-items:center}
+.agenda.big .n{font-size:2rem;line-height:1}
+.agenda.big .t{font-size:1.45rem;font-weight:800;letter-spacing:-.01em}
+.agenda.big .sub{font-size:1.12rem}
+.agenda.big .sp{font-size:1.18rem}
+.agenda.big .m{font-size:1.35rem}
+.subs{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem}
+.subs span{display:inline-flex;align-items:baseline;gap:.5rem;font-size:1.02rem;background:var(--lav);border-radius:4px;padding:.35rem .7rem;color:var(--ink2)}
+.subs i{font-style:normal;font-weight:800;color:var(--p)}
+.subs em{font-style:normal;color:var(--mute);font-size:.95rem}
+@media (max-width:1100px){.agenda.big .ag-row,.agenda.big .ag-head{grid-template-columns:2rem 1fr 6rem 3rem}}
+
+/* 1.2 Leadership */
+.lead-dom{display:flex;gap:1.6rem;align-items:center;padding:1.8rem 2rem;border-left:5px solid var(--p)}
+.lead-dom .role{font-size:.98rem;color:var(--p2);font-weight:700}
+.lead-dom h3{font-size:1.9rem;font-weight:800;letter-spacing:-.02em;margin:.2rem 0}
+.lead-dom .ttl2{color:var(--ink2)}
+.leads{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-top:1.2rem}
+.lead{padding:1.4rem 1.5rem;display:flex;gap:1.1rem;align-items:center}
+.lead .sector{font-size:.95rem;font-weight:700;color:var(--p2)}
+.lead h4{font-size:1.25rem;font-weight:800;margin:.15rem 0}
+.lead span{font-size:1rem;color:var(--mute)}
+.connector{height:2rem;margin:0 0 -1.2rem;position:relative}
+.connector::before{content:"";position:absolute;left:16.66%;right:16.66%;top:50%;border-top:2px solid var(--lilac)}
+.connector::after{content:"";position:absolute;left:50%;top:-1rem;height:1.5rem;border-left:2px solid var(--lilac)}
+
+/* 1.3 Ambition */
+.amb{display:grid;grid-template-columns:1fr 1.6fr;gap:3rem;align-items:start}
+.why h3{font-size:1.25rem;font-weight:800;margin-bottom:.8rem}
+.why p{font-size:1.2rem;color:var(--ink2);line-height:1.6;max-width:36rem}
+.not{margin-top:2rem;background:var(--lav);border-radius:var(--r);padding:1.2rem 1.4rem}
+.not h4{font-size:1.08rem;font-weight:800;margin-bottom:.7rem}
+.not li{list-style:none;display:grid;grid-template-columns:1.4rem 1fr;gap:.4rem;margin-top:.6rem;font-size:1.08rem;color:var(--ink2)}
+.not li::before{content:"✕";color:var(--p);font-weight:800}
+.not li b{color:var(--ink)}
+.goals h3{font-size:1.25rem;font-weight:800;margin-bottom:.9rem}
+.goal{display:grid;grid-template-columns:3.2rem 1fr;gap:1rem;padding:1.15rem 1.3rem;border-top:1px solid var(--line)}
+.goal:first-of-type{border-top:0}
+.goal .n{font-size:2.2rem;font-weight:800;color:var(--lilac);line-height:1;letter-spacing:-.04em}
+.goal h4{font-size:1.1rem;font-weight:800}
+.goal p{font-size:1.08rem;color:var(--ink2);margin-top:.3rem}
+.goal:hover .n{color:var(--p)}
+
+
+/* Vision & ambition: presenter build */
+#v-amb{overflow:hidden}
+.va-wrap{height:100%;display:flex;flex-direction:column}
+.va{position:relative;flex:1;min-height:0}
+.va-ticks{display:flex;gap:6px}
+.va-ticks i{width:28px;height:5px;border-radius:3px;background:var(--lav2);transition:background .3s}
+.va-ticks i.on{background:var(--p)}
+.va > div{position:absolute;left:0;right:0;transition:opacity .5s ease,transform .6s cubic-bezier(.2,.7,.2,1),visibility 0s .6s;opacity:0;visibility:hidden}
+.va-why-big{top:0;bottom:3rem;display:flex;flex-direction:column;justify-content:center;max-width:72rem;cursor:pointer;transform:translateY(16px)}
+.va-why-big .va-lbl{font-size:1.25rem;font-weight:700;color:var(--p2);margin-bottom:1.3rem}
+.va-why-big p{font-size:clamp(2rem,2.9vw,3.6rem);font-weight:800;letter-spacing:-.025em;line-height:1.15}
+.va-why-sm{top:0;display:flex;gap:1rem;align-items:baseline;padding:.8rem 1.1rem;background:var(--lav);border-radius:var(--r);font-size:1.12rem;color:var(--ink2);transform:translateY(-8px)}
+.va-why-sm b{color:var(--p3);white-space:nowrap}
+.va-stage{top:6.2rem;bottom:9.5rem;cursor:pointer}
+.va-focus{position:absolute;inset:0;display:grid;grid-template-columns:auto 1fr;gap:3rem;align-items:center;opacity:0;transform:translateY(30px);transition:opacity .45s ease,transform .6s cubic-bezier(.2,.7,.2,1)}
+.va-focus.on{opacity:1;transform:none}
+.va-focus.past{opacity:0;transform:translateY(-30px)}
+.va-focus .big{font-size:clamp(9rem,15vw,17rem);font-weight:800;line-height:.8;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:3px var(--p);padding-right:.5rem}
+.va-lead{font-size:1.15rem;font-weight:700;color:var(--p2);margin-bottom:.9rem}
+.va-focus h3{font-size:clamp(2.2rem,3.1vw,3.8rem);font-weight:800;letter-spacing:-.025em;line-height:1.08;max-width:52rem}
+.va-focus p{font-size:clamp(1.25rem,1.45vw,1.8rem);color:var(--ink2);margin-top:1.3rem;max-width:56rem;line-height:1.5}
+.va-rail{bottom:3rem;display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;transform:translateY(10px)}
+.va-chip{display:flex;gap:.8rem;align-items:center;text-align:left;padding:.9rem 1rem;border-radius:var(--r);border:1px dashed var(--line);background:transparent;min-height:5.2rem;transition:all .4s ease}
+.va-chip .n{font-size:1.6rem;font-weight:800;color:var(--line);min-width:1.4rem}
+.va-chip span:last-child{font-size:1.02rem;font-weight:700;color:transparent;transition:color .4s}
+.va-chip.seen{border:1px solid var(--line);background:#fff}
+.va-chip.seen .n{color:var(--lilac)}
+.va-chip.seen span:last-child{color:var(--ink2)}
+.va-chip.cur{background:var(--p3);border-color:var(--p3)}
+.va-chip.cur .n{color:var(--lilac)}
+.va-chip.cur span:last-child{color:#fff}
+.va-chip.seen:hover{border-color:var(--p)}
+.va-final{top:6.2rem;bottom:3rem;display:grid;grid-template-columns:2.2fr 1fr;gap:1.4rem;align-items:stretch;transform:translateY(14px)}
+.va-gwrap{display:flex;flex-direction:column;gap:.7rem;min-height:0}
+.va-gwrap .va-lead{margin:0}
+.va-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:1rem}
+.va-card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:1.4rem 1.5rem;display:flex;flex-direction:column;gap:.6rem;opacity:0;transform:translateY(12px);transition:opacity .4s,transform .5s cubic-bezier(.2,.7,.2,1)}
+.va-card .n{font-size:2.6rem;font-weight:800;color:var(--lilac);line-height:1}
+.va-card h4{font-size:1.35rem;font-weight:800}
+.va-card p{font-size:1.1rem;color:var(--ink2)}
+.va-not{margin-top:0!important;display:flex;flex-direction:column;justify-content:center;padding:1.8rem!important;opacity:0;transform:translateX(16px);transition:opacity .5s .55s,transform .6s .55s cubic-bezier(.2,.7,.2,1)}
+.va-not h4{font-size:1.3rem!important;margin-bottom:1rem!important}
+.va-not li{font-size:1.2rem!important;margin-top:1rem!important}
+.va-hint{bottom:0;font-size:.95rem;color:var(--mute);text-align:right}
+/* states */
+.va[data-step="0"] .va-why-big,
+.va:not([data-step="0"]) .va-why-sm,
+.va[data-step="1"] .va-stage,.va[data-step="2"] .va-stage,.va[data-step="3"] .va-stage,.va[data-step="4"] .va-stage,
+.va[data-step="1"] .va-rail,.va[data-step="2"] .va-rail,.va[data-step="3"] .va-rail,.va[data-step="4"] .va-rail,
+.va[data-step="5"] .va-final,
+.va:not([data-step="5"]) .va-hint{opacity:1;visibility:visible;transform:none;transition:opacity .5s ease .15s,transform .6s cubic-bezier(.2,.7,.2,1) .15s,visibility 0s}
+.va[data-step="5"] .va-card{opacity:1;transform:none}
+.va[data-step="5"] .va-not{opacity:1;transform:none}
+
+@media (max-height:860px){
+  .va-card{padding:.9rem 1.1rem;gap:.35rem}.va-card .n{font-size:1.8rem}.va-card h4{font-size:1.12rem}.va-card p{font-size:.95rem;line-height:1.4}
+  .va-final{top:5.6rem;bottom:2.4rem}.va-stage{top:5.6rem}.va-not{padding:1.2rem!important}.va-not li{font-size:1.02rem!important}
+}
+/* 2 Sectoral */
+.sectors{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem}
+.sector-c{display:flex;flex-direction:column;min-height:26rem}
+.sector-c .hbar{display:flex;justify-content:space-between;font-size:1.08rem;padding:.8rem 1.1rem}
+.sector-c .body{flex:1;display:flex;flex-direction:column;gap:1rem;padding:1.3rem 1.2rem}
+.sector-c .spk{display:flex;align-items:center;gap:.8rem}
+.sector-c .spk b{font-size:1.1rem}
+.sector-c .spk div span{display:block;font-size:.95rem;color:var(--mute)}
+.empty{flex:1;border:1.5px dashed #CFC6D6;border-radius:var(--r);display:grid;place-items:center;color:var(--mute);font-style:italic;font-size:1.02rem;background:repeating-linear-gradient(135deg,#fff 0 12px,var(--page) 12px 24px)}
+
+/* 3.1 Plan at a glance */
+.plan{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem}
+.pt{display:flex;flex-direction:column;justify-content:space-between;gap:1.4rem;padding:1.3rem 1.2rem;min-height:15rem;text-align:left;transition:border-color .15s,transform .15s}
+.pt h3{font-size:1.15rem;font-weight:800;line-height:1.25}
+.pt .tbc{align-self:flex-start}
+.pt .go{font-size:.95rem;font-weight:700;color:var(--p2)}
+button.pt:hover{border-color:var(--p);transform:translateY(-2px)}
+.pt.pend{background:var(--page);border-style:dashed}
+.pt .bar{height:4px;border-radius:2px;background:var(--p);width:2.5rem}
+.pt.pend .bar{background:var(--line)}
+.support{margin-top:1.4rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.3rem;background:var(--p3);color:#fff;border-radius:var(--r)}
+.support b{font-size:1.18rem}
+.support button{background:#fff;color:var(--p3);font-weight:700;font-size:.98rem;padding:.45rem .9rem;border-radius:4px}
+
+/* tables */
+.tbl{width:100%;border-collapse:collapse;background:#fff}
+.tbl th{text-align:left;font-size:.92rem;color:var(--mute);font-weight:700;padding:.7rem 1rem;border-bottom:1px solid var(--line);background:var(--page)}
+.tbl td{padding:.8rem 1rem;border-bottom:1px solid var(--line2);vertical-align:top;font-size:1.08rem;color:var(--ink2)}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td:first-child{font-weight:800;color:var(--ink);width:18%}
+.tbl td.own{width:22%;font-size:1rem}
+.tbl td.fq{width:8.5rem}
+
+/* 3.2 Connects */
+.forum{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:0;margin-bottom:1.2rem;overflow:hidden}
+.forum > div{padding:1.1rem 1.4rem;border-left:1px solid var(--line2)}
+.forum > div:first-child{border-left:0;background:var(--lilac2)}
+.forum .lb{font-size:.92rem;color:var(--mute);font-weight:700;margin-bottom:.4rem}
+.forum h3{font-size:1.5rem;font-weight:800;letter-spacing:-.01em}
+.forum p{color:var(--ink2);font-size:1.08rem}
+.forum .big{font-size:1.5rem;font-weight:800;color:var(--p3)}
+.subh{font-size:1.15rem;font-weight:800;margin:0 0 .3rem}
+.subp{color:var(--ink2);font-size:1.08rem;margin-bottom:.9rem}
+
+/* 3.4 events */
+.events{display:grid;grid-template-columns:repeat(5,1fr);gap:.9rem}
+.ev{padding:1rem 1.05rem;display:flex;flex-direction:column;gap:.4rem}
+.ev h4{font-size:1.12rem;font-weight:800;line-height:1.25}
+.ev .loc{font-size:.92rem;font-weight:700;color:var(--p2)}
+.ev p{font-size:.98rem;color:var(--ink2);line-height:1.5}
+.note{font-size:.9rem;color:var(--mute);margin-top:1rem}
+
+/* 3.5 RP matrix */
+.rp td:first-child{width:22%}
+.rp td{text-align:left}
+.rp th:not(:first-child),.rp td:not(:first-child){width:19.5%}
+
+/* 3.6 cadence */
+.cad{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:1.2rem 1.4rem 1rem;position:relative}
+.cad-grid{display:grid;grid-template-columns:17rem 8.5rem repeat(12,1fr);align-items:center;position:relative}
+.cad-grid .qh{grid-column:span 3;font-size:.92rem;font-weight:800;color:var(--p3);padding:.3rem 0 .6rem;border-left:1px solid var(--line);padding-left:.5rem}
+.cad-grid .rl{font-weight:700;font-size:1.05rem;padding:.42rem 0;border-top:1px solid var(--line2)}
+.cad-grid .rl small{display:block;font-weight:400;font-size:.88rem;color:var(--mute)}
+.cad-grid .rf{border-top:1px solid var(--line2);padding:.42rem 0;align-self:stretch;display:flex;align-items:center}
+.cad-grid .cell{border-top:1px solid var(--line2);align-self:stretch;display:flex;align-items:center;justify-content:center;gap:5px;border-left:1px dotted var(--line2)}
+.cad-grid .cell.q{border-left:1px solid var(--line)}
+.dot{width:.7rem;height:.7rem;border-radius:50%;background:var(--p);transform:scale(0);transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.dot.sm{width:.5rem;height:.5rem;background:var(--p2)}
+.dot.yr{width:1rem;height:1rem;border-radius:3px;background:var(--p3);transform:scale(0) rotate(45deg)}
+.dot.sp{background:none;border:1.5px dashed var(--mute)}
+.cad.run .dot{transform:scale(1)}
+.cad.run .dot.yr{transform:scale(1) rotate(45deg)}
+.sweep{position:absolute;top:0;bottom:0;width:2px;background:var(--p);opacity:0;pointer-events:none;box-shadow:0 0 12px var(--p)}
+.cad-grid.group .rl.gh{color:var(--mute);font-size:.9rem;font-weight:800;border-top:0;padding:.55rem 0 .1rem;grid-column:1/-1}
+.legend{display:flex;gap:1.4rem;margin-top:.9rem;font-size:.9rem;color:var(--mute);flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:.4rem}
+.legend .dot{transform:scale(1)}
+.legend .dot.yr{transform:scale(.8) rotate(45deg)}
+
+/* 3.7 next actions */
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem}
+.act{padding:2rem 1.8rem;min-height:18rem;display:flex;flex-direction:column;gap:1rem;position:relative;overflow:hidden}
+.act .n{font-size:5rem;font-weight:800;color:var(--lilac2);line-height:.8;letter-spacing:-.05em;position:absolute;right:1.2rem;top:1.2rem}
+.act h3{font-size:1.5rem;font-weight:800;letter-spacing:-.01em;margin-top:auto;position:relative}
+.act p{color:var(--ink2);font-size:1.12rem;position:relative}
+.act .bar{height:4px;width:3rem;background:var(--p);border-radius:2px}
+
+/* 4 Q&A */
+.qa{display:grid;grid-template-columns:1fr 1.5fr;gap:3rem;align-items:start}
+.qa-h{font-size:clamp(5rem,11vw,12rem);font-weight:800;letter-spacing:-.06em;line-height:.85;color:var(--p3)}
+.qa-h span{color:var(--p2)}
+.qa .ag{margin-top:1.4rem;font-size:1.1rem;color:var(--ink2)}
+.qa .mail{margin-top:2.2rem;padding:1.2rem 1.4rem;background:var(--lilac2);border-radius:var(--r);box-shadow:inset 0 0 0 1px var(--lilac)}
+.qa .mail p{color:var(--ink2);font-size:1.08rem}
+.qa .mail a{display:inline-block;margin-top:.5rem;font-weight:800;font-size:1.2rem;color:var(--p2);text-decoration:none}
+.qa .mail a:hover{text-decoration:underline}
+.ceo .intro{font-size:1.08rem;color:var(--ink2);padding:1rem 1.2rem 0}
+.ceo-lead{display:flex;gap:1rem;align-items:center;padding:1rem 1.2rem}
+.ceo-lead b{font-size:1.15rem}
+.ceo h5{font-size:.92rem;color:var(--mute);font-weight:800;padding:.9rem 1.2rem .4rem;border-top:1px solid var(--line2)}
+.ppl{display:grid;grid-template-columns:repeat(3,1fr);gap:.2rem .8rem;padding:0 1.2rem 1rem}
+.ppl.five{grid-template-columns:repeat(3,1fr)}
+.pp{display:flex;gap:.65rem;align-items:center;padding:.45rem 0;min-width:0}
+.pp .mono{width:2.4rem;height:2.4rem;font-size:.9rem}
+.pp div{min-width:0}
+.pp b{display:block;font-size:1.05rem}
+.pp div span{display:block;font-size:.9rem;color:var(--mute)}
+.pp a{display:block;font-size:.88rem;text-decoration:none;white-space:normal;line-height:1.3}
+.pp a:hover{text-decoration:underline}
+
+
+/* projection sizing for roomier screens */
+#v-qa .hbar{font-size:1.1rem;padding:.8rem 1.3rem}
+#v-qa .ceo .intro{font-size:1.15rem;padding:1.2rem 1.3rem 0}
+#v-qa .ceo-lead b{font-size:1.4rem}
+#v-qa .ceo h5{font-size:1rem;padding:1.1rem 1.3rem .5rem}
+#v-qa .ppl{padding:0 1.3rem 1.1rem;gap:.5rem 1rem}
+#v-qa .pp .mono{width:3rem;height:3rem;font-size:.95rem}
+#v-qa .pp b{font-size:1.12rem}
+#v-qa .pp div span{font-size:.98rem}
+#v-qa .pp a{font-size:.92rem}
+#v-qa .ag{font-size:1.4rem!important}
+#v-qa .mail p{font-size:1.15rem}
+#v-qa .mail a{font-size:1.45rem}
+
+#v-lead .lead-dom{padding:2.4rem 2.6rem}
+#v-lead .mono.lg{width:7rem;height:7rem;font-size:2.2rem}
+#v-lead .lead-dom .role{font-size:1.1rem}
+#v-lead .lead-dom h3{font-size:2.8rem}
+#v-lead .lead-dom .ttl2{font-size:1.3rem}
+#v-lead .lead{padding:2rem 1.8rem}
+#v-lead .lead .mono{width:4.2rem;height:4.2rem;font-size:1.3rem}
+#v-lead .lead .sector{font-size:1.1rem}
+#v-lead .lead h4{font-size:1.65rem}
+#v-lead .lead span{font-size:1.1rem}
+#v-plan .pt{min-height:21rem;padding:1.6rem 1.4rem}
+#v-plan .pt h3{font-size:1.55rem}
+#v-plan .pt .go,#v-plan .pt .tbc{font-size:1.05rem}
+#v-plan .support{padding:1.3rem 1.6rem}
+#v-plan .support b{font-size:1.4rem}
+#v-plan .support button{font-size:1.05rem;padding:.6rem 1.2rem}
+#v-tl .tbl th{font-size:1.05rem;padding:.9rem 1.2rem}
+#v-tl .tbl td{font-size:1.28rem;padding:1.3rem 1.2rem}
+#v-tl .freq{font-size:1rem}
+#v-ev .ev{padding:1.3rem}
+#v-ev .ev .loc{font-size:1.02rem}
+#v-ev .ev h4{font-size:1.3rem}
+#v-ev .ev p{font-size:1.08rem}
+#v-rp .tbl th{font-size:1.05rem}
+#v-rp .tbl td{font-size:1.2rem;padding:1.05rem 1.2rem}
+#v-rp .tbc{font-size:1rem}
+#v-act .act{min-height:26rem;padding:2.4rem 2.2rem}
+#v-act .act .n{font-size:7rem}
+#v-act .act h3{font-size:2.1rem}
+#v-act .act p{font-size:1.3rem}
+@media (max-width:1100px){
+  .ttl,.amb,.qa{grid-template-columns:1fr;gap:2rem}
+  .plan,.events{grid-template-columns:repeat(2,1fr)}
+  .leads,.sectors,.acts{grid-template-columns:1fr}
+  .connector{display:none}
+  .forum{grid-template-columns:1fr}
+  .cad{overflow-x:auto}.cad-grid{min-width:62rem}
+  .brand{min-width:auto}.date,.keys{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><b>Food Community of Practice</b></div>
+  <nav class="sections" id="nav" aria-label="Sections"></nav>
+</header>
+
+<div class="subnav" id="subnav" aria-label="Pages in this section"></div>
+
+<main id="main">
+
+<!-- ============ 1.1 LANDING ============ -->
+<section class="view landing" data-sec="1" data-label="Welcome">
+<div class="wrap">
+  <div class="land-top">
+    <div class="kicker">Food Community of Practice</div>
+    <h1>The food industry.<br>One global community.</h1>
+    <p class="lede">Connecting practitioners across Agribusiness, Packaged Food &amp; Snacks, and Food Services — to share what works, grow expertise, and sharpen Accenture's edge across every link in the value chain.</p>
+  </div>
+  <svg class="strands" id="strands" viewBox="0 0 1400 240" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <defs>
+      <linearGradient id="fadeR" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset=".86" stop-color="#fff" stop-opacity="1"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <mask id="fadeMask"><rect x="0" y="0" width="1400" height="240" fill="url(#fadeR)"/></mask>
+    </defs>
+    <text x="0" y="26">Agribusiness</text>
+    <text x="0" y="116">Packaged Food &amp; Snacks</text>
+    <text x="0" y="206">Food Services</text>
+    <g id="strandG" mask="url(#fadeMask)"></g>
+  </svg>
+</div>
+</section>
+
+<!-- ============ 1.1b AGENDA ============ -->
+<section class="view" data-sec="1" data-label="Agenda">
+<div class="wrap">
+  <div class="vh"><div><h2>Agenda</h2></div></div>
+  <div class="agenda big" role="table" aria-label="Agenda">
+    <div class="hbar ag-head" role="row"><span></span><span>Topic</span><span>Speaker</span><span>Min</span></div>
+    <div class="ag-row go" data-jump="1" role="row"><span class="n">1</span><div><div class="t">Kick off / Welcome Note</div><div class="sub">FY27 Purpose &amp; CoP Objective setting</div></div><span class="sp">Geoff</span><span class="m">5</span></div>
+    <div class="ag-row go" data-jump="2" role="row"><span class="n">2</span><div><div class="t">Sectoral</div>
+      <div class="subs"><span><i>2a</i>Sector – Agri<em>Chris · 10</em></span><span><i>2b</i>Sector – Snacking (Packaged Food)<em>Simon · 15</em></span><span><i>2c</i>Sector – Food Services<em>Taylor · 15</em></span></div></div><span class="sp">Chris, Simon, Taylor</span><span class="m">40</span></div>
+    <div class="ag-row go" data-jump="3" role="row"><span class="n">3</span><div><div class="t">FY27 Plan &amp; Objectives</div><div class="sub">Lay out the plans for this year and seek support</div></div><span class="sp">Elan</span><span class="m">5</span></div>
+    <div class="ag-row go" data-jump="4" role="row"><span class="n">4</span><div><div class="t">Q&amp;A</div></div><span class="sp">All</span><span class="m">5</span></div>
+  </div>
+</div>
+</section>
+
+<!-- ============ 1.2 LEADERSHIP ============ -->
+<section class="view" data-sec="1" data-label="Leadership" id="v-lead">
+<div class="wrap">
+  <div class="vh"><div><h2>Leadership</h2><p>The leaders convening the community across the domain and its three sectors.</p></div></div>
+  <div class="card lead-dom">
+    <span class="mono lg" data-ph="geoff">GD</span>
+    <div><div class="role">Domain lead</div><h3>Geoff Deines</h3><div class="ttl2">Global Food &amp; Agribusiness Lead</div></div>
+  </div>
+  <div class="connector"></div>
+  <div class="leads">
+    <div class="card lead"><span class="mono">CL</span><div><div class="sector">Agribusiness</div><h4>Christopher Liguori</h4><span>Subsector Lead</span></div></div>
+    <div class="card lead"><span class="mono" data-ph="simon">SO</span><div><div class="sector">Packaged Food &amp; Snacks</div><h4>Simon Osborne</h4><span>Subsector Lead</span></div></div>
+    <div class="card lead"><span class="mono" data-ph="taylor">TC</span><div><div class="sector">Food Services</div><h4>Taylor Crown</h4><span>Subsector Lead</span></div></div>
+  </div>
+</div>
+</section>
+
+<!-- ============ 1.3 VISION & AMBITION ============ -->
+<section class="view" data-sec="1" data-label="Vision &amp; ambition" id="v-amb">
+<div class="wrap va-wrap">
+  <div class="vh"><div><h2>Vision &amp; ambition</h2></div><div class="va-ticks" id="vaTicks" aria-hidden="true"></div></div>
+  <div class="va" id="va" data-step="0">
+    <div class="va-why-big" data-act="next">
+      <div class="va-lbl">Why the Food Community of Practice</div>
+      <p>One connected community across Agribusiness, Packaged Food &amp; Snacks, and Food Services — sharing client experience, assets and points of view to sharpen our work across the full value chain.</p>
+    </div>
+    <div class="va-why-sm"><b>Why the Food Community of Practice</b><span>One connected community across Agribusiness, Packaged Food &amp; Snacks, and Food Services — sharing client experience, assets and points of view to sharpen our work across the full value chain.</span></div>
+    <div class="va-stage" id="vaStage" data-act="next"></div>
+    <div class="va-rail" id="vaRail"></div>
+    <div class="va-final" id="vaFinal">
+      <div class="va-gwrap"><div class="va-lead">Our goals are to grow our food industry through…</div><div class="va-grid" id="vaGrid" style="flex:1;min-height:0"></div></div>
+      <div class="not va-not">
+        <h4>Our goals are not…</h4>
+        <ul>
+          <li><span><b>A P&amp;L entity</b> — we do not track or report a pipeline and forecast</span></li>
+          <li><span><b>Bound to one geography or sector</b> — we cut across geographies and sectors alike</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="va-hint" id="vaHint">Press <span class="kbd">→</span> or click to continue</div>
+  </div>
+</div>
+</section>
+
+<!-- ============ 2 SECTORAL ============ -->
+<section class="view" data-sec="2" data-label="Sectoral">
+<div class="wrap">
+  <div class="vh"><div><h2>Sectoral</h2></div></div>
+  <div class="sectors">
+    <div class="card sector-c"><div class="hbar"><span>2a&nbsp; Sector – Agri</span><span>10 min</span></div>
+      <div class="body"><div class="spk"><span class="mono">CL</span><div><b>Chris</b></div></div><div class="empty">Content to be added</div></div></div>
+    <div class="card sector-c"><div class="hbar"><span>2b&nbsp; Sector – Snacking (Packaged Food)</span><span>15 min</span></div>
+      <div class="body"><div class="spk"><span class="mono" data-ph="simon">SO</span><div><b>Simon</b></div></div><div class="empty">Content to be added</div></div></div>
+    <div class="card sector-c"><div class="hbar"><span>2c&nbsp; Sector – Food Services</span><span>15 min</span></div>
+      <div class="body"><div class="spk"><span class="mono" data-ph="taylor">TC</span><div><b>Taylor</b></div></div><div class="empty">Content to be added</div></div></div>
+  </div>
+</div>
+</section>
+
+<!-- ============ 3.1 PLAN AT A GLANCE ============ -->
+<section class="view" data-sec="3" data-label="Overview" id="v-plan">
+<div class="wrap">
+  <div class="vh"><div><h2>FY27 Plan &amp; Objectives</h2><p>Lay out the plans for this year and seek support.</p></div>
+    <div class="who"><span class="mono" data-ph="elan">EE</span><span><b>Elan</b></span></div></div>
+  <div class="plan">
+    <button class="card pt" data-goto="Quarterly CoP Connects"><span class="bar"></span><h3>Quarterly CoP Connects</h3><span class="go">View</span></button>
+    <div class="card pt pend"><span class="bar"></span><h3>Knowledge Sharing DLs</h3><span class="tbc">To be confirmed</span></div>
+    <button class="card pt" data-goto="RP / I&amp;E SME panels"><span class="bar"></span><h3>RP / I&amp;E SME Panels for different areas</h3><span class="go">View</span></button>
+    <button class="card pt" data-goto="Thought leadership"><span class="bar"></span><h3>Thought Leadership – Support!</h3><span class="go">View</span></button>
+    <div class="card pt pend"><span class="bar"></span><h3>Collection site – Proactively reach out to CALs to curate credentials / assets</h3><span class="tbc">To be confirmed</span></div>
+  </div>
+  <div class="support"><b>Your next actions</b><button data-goto="Your next actions">View</button></div>
+</div>
+</section>
+
+<!-- ============ 3.2 CONNECTS + COMMUNITY ============ -->
+<section class="view" data-sec="3" data-label="Quarterly CoP Connects">
+<div class="wrap">
+  <div class="vh"><div><h2>Quarterly CoP Connects</h2><p>The forum that keeps the community running — who convenes it, and how often.</p></div></div>
+  <div class="card forum">
+    <div><div class="lb">Primary forum</div><h3>CoP community call</h3><p style="margin-top:.5rem">The primary convening forum — sharing industry news, spotlighting client stories, discussing cross-sector learnings, and setting out what’s coming next.</p></div>
+    <div><div class="lb">Who attends</div><div class="big">All Food CoP members</div></div>
+    <div><div class="lb">Frequency</div><div class="big">Quarterly</div></div>
+  </div>
+  <h3 class="subh">Internal — community building</h3>
+  <p class="subp">How we keep the practitioner community connected between engagements, and make sure the work one team does is visible to the next.</p>
+  <div class="card" style="overflow:hidden">
+  <table class="tbl">
+    <thead><tr><th>Activity</th><th>Description</th><th>Owner</th><th>Frequency</th></tr></thead>
+    <tbody>
+      <tr><td>Brown-bag sessions</td><td>45 minutes, one project team or SME shares what they actually did. Recorded and saved to the CoP library.</td><td class="own">Rotating SME host; CoP Enablement office schedules</td><td class="fq"><span class="freq">Monthly</span></td></tr>
+      <tr><td>Community newsletter</td><td>One short mail: new wins and credentials, latest POV, upcoming events, new joiners, where help is needed.</td><td class="own">CoP Enablement Office + Nominated members</td><td class="fq"><span class="freq">Monthly</span></td></tr>
+      <tr><td>Recognition</td><td>Publicly credit the people who contribute POVs, assets and talks — named in the newsletter each quarter.</td><td class="own"><span class="tbc">TBD</span></td><td class="fq"><span class="freq">Quarterly</span></td></tr>
+      <tr><td>Client innovation workshop</td><td>A half-day session at Accenture innovation centers, where one account team brings a real client challenge and the community works it live; internally sponsored.</td><td class="own"><span class="tbc">TBD</span></td><td class="fq"><span class="freq">As sponsored</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+</section>
+
+<!-- ============ 3.3 THOUGHT LEADERSHIP ============ -->
+<section class="view" data-sec="3" data-label="Thought leadership" id="v-tl">
+<div class="wrap">
+  <div class="vh"><div><h2>Thought Leadership – Support!</h2><p>What we publish, and where we show up.</p></div></div>
+  <div class="card" style="overflow:hidden">
+  <table class="tbl">
+    <thead><tr><th>Activity</th><th>Description</th><th>Owner</th><th>Frequency</th></tr></thead>
+    <tbody>
+      <tr><td>LinkedIn posts</td><td>Short posts from our leaders on live Food &amp; Agri topics, reshared by the community members.</td><td class="own">CoP nominated SMEs</td><td class="fq"><span class="freq">Fortnightly</span></td></tr>
+      <tr><td>Points of View (POVs)</td><td>A 2–4 page perspective on one topic relevant to Food industry based on the latest trends (e.g. Future of Food).</td><td class="own">SME author, reviewed by CoP nominated curator</td><td class="fq"><span class="freq">Quarterly</span></td></tr>
+      <tr><td>Annual Food &amp; Agri outlook</td><td>One flagship, data-backed report a year — the anchor that POVs, talks and posts all reuse.</td><td class="own">CoP Enablement office | CoP nominated SMEs with Research &amp; Marketing</td><td class="fq"><span class="freq">Annually</span></td></tr>
+      <tr><td>Industry &amp; agritech events</td><td>Pick 2–3 events for the year (Consumer Goods Forum, Gulfood, World Agri-Tech) and join the panel to establish Accenture expertise in global platforms.</td><td class="own">Sector leads nominate 1–2 speakers per event</td><td class="fq"><span class="freq">Quarterly</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+</section>
+
+<!-- ============ 3.4 EXTERNAL EVENTS ============ -->
+<section class="view" data-sec="3" data-label="External outreach" id="v-ev">
+<div class="wrap">
+  <div class="vh"><div><h2>External outreach</h2><p>A list of potential external events Accenture can participate in FY’27, shortlisted on the basis of size/reach of event, participation of client groups and other consulting firms, and overlaps in theme with Accenture’s priorities, capabilities and offerings.</p></div></div>
+  <div class="events" id="events"></div>
+</div>
+</section>
+
+<!-- ============ 3.5 RP / I&E PANELS ============ -->
+<section class="view" data-sec="3" data-label="RP / I&amp;E SME panels" id="v-rp">
+<div class="wrap">
+  <div class="vh"><div><h2>RP / I&amp;E SME Panels for different areas</h2><p>Reinvention Partners</p></div></div>
+  <div class="card" style="overflow:hidden">
+  <table class="tbl rp" id="rp">
+    <thead><tr><th></th><th>Overall Lead</th><th>Agribusiness</th><th>Packaged Food &amp; Snacks</th><th>Food Services</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  </div>
+</div>
+</section>
+
+<!-- ============ 3.6 CADENCE ============ -->
+<section class="view" data-sec="3" data-label="FY27 cadence" id="v-cad">
+<div class="wrap">
+  <div class="vh"><div><h2>FY27 cadence</h2><p>Every forum and activity in the plan, laid across the year by its stated frequency.</p></div></div>
+  <div class="cad" id="cad"><div class="sweep" id="sweep"></div><div class="cad-grid" id="cadGrid"></div>
+    <div class="legend">
+      <span><i class="dot sm"></i>Fortnightly</span><span><i class="dot"></i>Monthly / quarterly</span><span><i class="dot yr"></i>Annually</span><span><i class="dot sp"></i>As sponsored</span>
+      <span style="margin-left:auto">Placement within each period is illustrative.</span>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ============ 3.7 NEXT ACTIONS ============ -->
+<section class="view" data-sec="3" data-label="Your next actions" id="v-act">
+<div class="wrap">
+  <div class="vh"><div><h2>Your next actions</h2></div></div>
+  <div class="acts">
+    <div class="card act"><span class="n">1</span><span class="bar"></span><h3>Join the Food CoP</h3><p>Bring your interested colleagues into the community and add them to the DL.</p></div>
+    <div class="card act"><span class="n">2</span><span class="bar"></span><h3>Share your client whitespace</h3><p>Flag areas of interest and live opportunities in your client's space.</p></div>
+    <div class="card act"><span class="n">3</span><span class="bar"></span><h3>Contribute &amp; collaborate</h3><p>Bring ideas, proof points, or a cross-sector play to the next session.</p></div>
+  </div>
+</div>
+</section>
+
+<!-- ============ 4 Q&A ============ -->
+<section class="view" data-sec="4" data-label="Q&amp;A" id="v-qa">
+<div class="wrap">
+  <div class="qa">
+    <div>
+      <div class="qa-h">Q<span>&amp;</span>A</div>
+      <div class="ag">All · 5 min</div>
+      <div class="mail"><p>Have an idea, question, or contribution? We're here to help connect the right people and resources.</p><a href="mailto:Food.CoP@accenture.com">Food.CoP@accenture.com</a></div>
+    </div>
+    <div class="card ceo">
+      <div class="hbar">Community Enablement Office</div>
+      <p class="intro">Whether you need support on an engagement, want to contribute an idea, or are exploring a collaboration opportunity across food sectors, the Community Enablement Office is your first point of contact.</p>
+      <div class="ceo-lead"><span class="mono" data-ph="elan" style="width:3.4rem;height:3.4rem">EJ</span><div><b>Elanthirayan J (Elan)</b><div style="font-size:.98rem;color:var(--mute)">GN Food &amp; Agribusiness Lead</div><a href="mailto:j.elanthirayan@accenture.com" style="font-size:.95rem;text-decoration:none">j.elanthirayan@accenture.com</a></div></div>
+      <h5>CoP Enablement Leads</h5>
+      <div class="ppl" id="leadsList"></div>
+      <h5>CoP Stewards</h5>
+      <div class="ppl five" id="stewardsList"></div>
+    </div>
+  </div>
+</div>
+</section>
+
+</main>
+
+<footer class="bottom">
+  <span id="secLabel"></span>
+  <div class="prog" id="prog"></div>
+  <span class="keys"><span class="kbd">←</span> <span class="kbd">→</span> to move</span>
+  <div class="fnav"><button id="prev">Previous</button><button id="next">Next</button></div>
+</footer>
+
+<script>
+(function(){
+  const SECTIONS=[["1","Welcome Note"],["2","Sectoral"],["3","FY27 Plan & Objectives"],["4","Q&A"]];
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- data from deck & artifact ---------- */
+  const EVENTS=[
+    ["CES 2027","Las Vegas, USA","Consumer tech, AI, robotics, digital health, mobility, smart home; 148,000+ visitors. Dedicated tracks for automotive and health tech"],
+    ["NRF 2027 — Retail's Big Show","New York, USA","Retail, consumer goods, retail tech, AI applied to commerce; 41,000+ professionals"],
+    ["Davos — WEF 2027","Davos, Switzerland","Global agenda: economy, geopolitics, sustainability, tech; government and business leaders. 2027 theme: Collaboration in a Contested World"],
+    ["CAGNY 2027","Orlando, USA","Consumer Analyst Group of New York; CEOs and CFOs of major CPG/FMCG companies present strategies and results to investment analysts"],
+    ["Natural Products Expo West 2027","Anaheim, USA","Natural and organic products event in the USA; food, beverages, supplements and healthy consumption trends"],
+    ["SXSW 2027","Austin, Texas, USA","Innovation, music, film, TV, comedy, education; Innovation track: Mar 15–20"],
+    ["APAS Show 2027","São Paulo, SP","Food and beverage trade fair in the Americas; food industry, supermarket retail, innovation and technology for the sector"],
+    ["CGF Global Summit 2027","San Francisco, USA","Consumer Goods Forum — summit of retail and FMCG CEOs; AI, supply chain, sustainability, data; members-only format"],
+    ["VivaTech 2027","Paris, France","Tech and startup event in Europe; AI, GreenTech, creative industries, corporate innovation; 200,000+ attendees"],
+    ["Cannes Lions 2027","Cannes, France","Global creativity and marketing festival; advertising, media, branding, creator economy; 12,000+ delegates"]
+  ];
+  const RP=["Supply Chain & Engineering","Digital Core","Song","Industry & Enterprise","Cybersecurity","Talent","Finance"];
+  const LEADS=[["Shruti Mandal","Agribusiness","shruti.mandal@accenture.com","shruti"],["Nupur Agrawal","Packaged Food & Snacks","nupur.c.agrawal@accenture.com","nupur"],["Anulipi Ghosh","Food Services","anulipi.ghosh@accenture.com","anulipi"]];
+  const STEW=[["K J Mathew","mathew.k.j@accenture.com","mathew"],["Aparna Ravikumar","aparna.ravikumar@accenture.com","aparna"],["Nitin Bhandari","nitin.d.bhandari@accenture.com","nitin"],["Khyati Gupta","khyati.g.gupta@accenture.com","khyati"],["Sudha Tiwari","sudha.tiwari@accenture.com","sudha"],["Varsha Kripalani","varsha.kripalani@accenture.com","varsha"]];
+  /* cadence: [label, group, freq] */
+  const CAD=[
+    ["Forums"],
+    ["CoP community call","Quarterly"],
+    ["Internal — community building"],
+    ["Brown-bag sessions","Monthly"],["Community newsletter","Monthly"],["Recognition","Quarterly"],["Client innovation workshop","As sponsored"],
+    ["External — thought leadership"],
+    ["LinkedIn posts","Fortnightly"],["Points of View (POVs)","Quarterly"],["Annual Food & Agri outlook","Annually"],["Industry & agritech events","Quarterly"]
+  ];
+
+  const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  const ini=n=>n.replace(/\(.*?\)/g,"").split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join("").toUpperCase();
+
+  document.getElementById("events").innerHTML=EVENTS.map(e=>`<div class="card ev"><span class="loc">${esc(e[1])}</span><h4>${esc(e[0])}</h4><p>${esc(e[2])}</p></div>`).join("");
+  document.querySelector("#rp tbody").innerHTML=RP.map(r=>`<tr><td>${esc(r)}</td>${'<td><span class="tbc">TBD</span></td>'.repeat(4)}</tr>`).join("");
+  document.getElementById("leadsList").innerHTML=LEADS.map(p=>`<div class="pp"><span class="mono" data-ph="${p[3]}">${ini(p[0])}</span><div><b>${esc(p[0])}</b><span>${esc(p[1])}</span><a href="mailto:${p[2]}">${p[2].replace("@","<wbr>@")}</a></div></div>`).join("");
+  document.getElementById("stewardsList").innerHTML=STEW.map(p=>`<div class="pp"><span class="mono" data-ph="${p[2]}">${ini(p[0])}</span><div><b>${esc(p[0])}</b><a href="mailto:${p[1]}">${p[1].replace("@","<wbr>@")}</a></div></div>`).join("");
+
+  /* portraits from the Food CoP artifact */
+  const PH={"varsha": "data:image/webp;base64,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", "simon": "data:image/webp;base64,UklGRhQFAABXRUJQVlA4IAgFAABwGgCdASpgAGAAPmEokEWkIqGkLHW8uIAMCWUAzFDDUamazbQs7fBb0OhO1Oadwo01TRRsUGDmdMK/OQq0iWa7os2X2PJO5GYiOagEEW0PWifauF5lfvm601HA316wsGSyWOuiilYNbrT8Bt1MggJUivCS+OlZMGJzpBCUg9sr8DvLFB0Fy9q6vYOJ/2nfiDwwrbOpJ1Jg7zUvxWbh0r6zGavd/luFuOLGUvgOJVtmqt/k0+f73uoh01hUMbpF2PQChvxNzD2hSnz4hXj7yofhaGGYssndDu3bvsDIAP7+wcWFzzwr7JjHBNIFYbkZaNToaBNjoFzdY/A7KTnW15gSN1BvNcmD6ZuKI+nrOzeD9vlWjotdZVOBCyyWDfnvYGMhekpCdbtcW3V1D14UHh8Tyi5ESxBxElRvvOlJiL1g4rpJlJmQE5b5doGo5i33nMJe97a5JoQEcAbUa+GC7NAknO/iwM2Y+YuP5wYpPeysNSrwW8fmIzH7ccbNsiZq4Qy2yh54BuvreZuv3BuAzHlQQgABkr22aCMeI6xykokejTTcLFW+q2haaXMAdE4LGA0LbJoO4dzJ/OfV+YagXixxaqbc3MDMSf+XoGPD5m9yxG+mwBIb3Om3h5Jfyw8xEvrE/6KDmXrnCkmUk4vVf9CFvgOa3LLIHMf5owOt74rbdAx00B/WgXnj4v1KfXva/g/FIJUQv0CukM/wX7fd4sS9N7Ob7xgqXfJridKStvEjXWVnb6TBXPWP4HVEkhTjk39S4r9Wv4j/ePqlaEgQRexPZFqvN1S12uT/rAkl5r1qNlidzChV19Kzv87zYDNivRbFKl9baz7JB5fKmagHna7WypT0r8xM4GOtaZZgxCTH7fSgGEKEVBriNKWbF3KZrQpN63OKd3YB9+5TIjxjH/2nfiGO12CyfhlO6Vq5EtpX2Q+iyL426UeOa084fipu9pgOe6aIVJJ7MCwYZvrQKjVLFifd1j5BRrzfBKO2r3BPFgtpXEb71kXsJpMha8xGd4T1QrGqyfrmGs9onZCkC4Zr2oXkfQWLS29w5t/7KKPgDFZHRAoFGZi6kaoOMA5QseAZmbEyWUEhaMyN8n+Qw+FPRofBAva52TC72UfkBGsuXgyZ2Tepw0DQfhGS0KqNGB25zfQYyMuH4NmPTMTLszfrlZAU/BfuHEEvefQAeSddBctmELSNQlMALT99UcxtFtH7Jj1eFN9xU9zYevTjUHUcRchRDZ+xu8tlVHg/KmP+J+WctbCPPud44OD7IGhxEubUqpAxEFk4EXKer15s64b5uqac+k/sOo87sFodaCXfF/0LI/g6tbDNHXEr1Sd5YTfGcUVSne/7Aa8MWAyaFARJQvO2YuTMsNKsCfSWkuADjebsAT0PA9sTa2qtRk93yZnF8N5U+OY/Ba7Q5ezb0cQf1qe9zY1mSzLpuFXfbcDcwD++OljWdFe3QCnOSc0IEpPBtZULna8A/Gi5L33m633KfWxxPpmfT8WH2Xt9Ud0DAdrWK55O1hMAdJcsyodovLHG3lbchI/mWgi9xDT+LVN+bBtHXBv01rtorplbngBRKkyTIPRXLBECSqY0j24dGtm7ia+ntjX2Loni5VPi7unjpW+VbanpYDDEjhk2cUI7f5ZoDUrvFkNX+AFOYXz7UT71uuSijlYQF1yGpNo0Jjj6jazC2uQbJAOq0iNBZiRqtcPY//dxgAAA", "geoff": "data:image/webp;base64,UklGRmAFAABXRUJQVlA4IFQFAACQGgCdASpgAGAAPpVAm0mlo6IhKPZs6LASiWMA0iy+jNChuzBzEhefW1Pc9dTh4mdL1NI8qn1z7Be6qt2V9Tti4JXwMQwDSWaEOrZZownbHEWSxzWC8zJpOXmSnyX/8NHtGigkmm08mSHh6c0sJlZZAdgzBkHPVxvwN6Js7XFriZlhB598MmXnuTEX8/aKxEYGIOmz3yTLXh/uaWO1Ya7AO9ErzwkghumE2DGmeCiqqS3cKXDyYfkiEwM8PVguol1UML7eN41pzWZo7bEvt8YTthfVy9SJDNfo1+eDAAD++6WmY56Hz+v/gf09Y+aYQPecLNwb8DWzd8rofZohsJ76n8Z9WTN4Y6K/n9dGp2mE9TzEzBDOu2rTinhkj5focxfe50gwn9AJXgk16e1PUMTixdnj0N1JCXx4lyaHDGdpz0D4mK+d64ZL/fsQXTTYvlNdgBQMl5tzuS/5dbQjYzbj8QUOBGBwzpPRWuSOOo5qqfdif8J8HceoxQ/xJV1lfeR5OyfUi788NeVrhbK+UtD5p8El/ELOrOhwFQCpAUA/VJUP9qzkaWbW8CtBBEeq5esH56O/2p1GgT4fwicY1MzmdKMzXQrb3ugZwT6wgP3586sWAPrWYUXG0iQNzp9qhJ5yY9Aprb5pqmre0Q/xFxjh/By/hegoa4M0gq2bCVLEBAxEwGylWmLtHKI/98nuWVWayx8mmThvQ0PDUTWkHIMk1rmIaGk7ukBaZXSrmyknDOwCwzE93AloHk3Vt1zeQsiWJtxiU7ciP7xZLDSUknI2nV219QD8TDFJDNdTug5XpCTS+Yoq3xD93pWyz+s9v7dN9vVn5pwYoa38eWtGbAzQLhBbxNV1IUKA4VPAtJm4CAghTrGsHUDiiXsaM35v0DS8Ooje8ex70UfSQdDZe7On90TPtUbkmwyA3Bv/fEonHXv6N/bR5L8msJPKyV9GXVcQsZiopPOglVgoWKxlwGptIYQCwrWRJE5XCPPCJwW98EmHukzr7PGqszbduB7cUfbUKNN9jVfsw8c5F8nVTkzEofVUSvxa2RZShn44yrr2/mTA0VaCxF+j6LC1UAvDnfKhApmNGL1/pBp4M0KBYKFhe9whPd8x4SG+Lj5FB5Cr4hmjUaraCcTzu7g1893NnPl9iXcP0XW253N6OgJAh6ms4NizfX46+O5LK1lmiY1r6OeOjKpEAghBdRn6sx4a651eKq/T92vzxzotvZLfHZ2rfFt7v2xQpeXC0ir4g2mqyfuFABn9Z/Fjn2YkaF+zoAiBIgPrUFceQMWGtVNxBKTKF9jkQ42DMGwiNrlbJmKgkfFUSHz6WHHlGGWkAUdwe6+9WeIseN29AdtwxcFSbNEHYcNmtJ/1RlYwMdGip2lh4Z1R+j2/VqOw/brfZD8jFH/IcpSEU6R+4YMtx//vZt+O6tgimsDSvYmLN0Jpfdyb/91EVVTuYgSp5cHdRv89yoq4VsFMo/0lEXGIpG1PP73Lxyy/9OA+TABP926e7l7Ebzf3+6pg3DkL4avA0z6+/MCxk6HdE4tbnxUWik8zuEGGO64WefzO6KrgknLGADNmN4UumhjcHRcgVSOXS+/yg2Zhf3ak0bI/yVb37ApyhJofC+S/M9IHvurMdkFnjBDQ21VXb9arQhDCnqgBRukFjOBu5mEYBnm9MIVvwicHvdIebju6bnJiwqrO2ti2sLjqVbnKOPh41qN78XEb63BU+30yOBv0SPF2wsPXhTaAk8PvucAENfWf5pH6krbGXVJ5DdnF7hytpwZZAa7luiue8LRxU0zoet2DItL8AxRF/CstBFgAAA==", "taylor": "data:image/webp;base64,UklGRigEAABXRUJQVlA4IBwEAAAQFwCdASpgAGAAPpU+mUglo6KhLVZs8LASiWUAzfTZybq/0DA9AdWrK+/+wKHYPTLlqcYEA49/f23UoeYS3t7Nx2BpykL4qxJKVzI7m8N2zgmA0ZRcpMXDbZUa6QywTT7WHo1PEmd+t0fpl9kjj4ByjXPsej7LhS7h5m4KG3ovYfM3O1ZQgzPj8StpnJj8SKdJ0Istmz/Y4wow56OqSjtbVivR/p8m4f2OIzxINrtLrX1pZLLnBE/zcO8iT76iQI7QAP7wQmMbp0pl6m2H0Rzh9yELXkRnnQdH1V8vngC4/OAaQRfM/8OLfP1MXlhyncKPiJVgJcWfz1WekrsbNm5et+IMIysQhdOBT6ervcVfwqQCkUOn821boNpprcWImGg4qztRi1/FZIEvy7X/3QBKCGaww9IKDpFdSXwClL7q8iI8l/r4wL01ffF+tmVLgx0XcZBFNOMyeiDM3TrfmIdVYFAlMppSN92x7WSJPvknDZzxuKpemH7K5tFmsIU3Pz+RbEbHtPRndbHopuNwxTdlNoskRS2/8KtEy6mhllD4caC/+MW6uZRiiIIklH2KBvhJGueyFCoIIT0jpxoxSSVPEuOCmhwGc+kybExexUHatydG99TQp7WWPL69WzqNbyTuaG1aFKt8x5Say1vj7rwgHfR+5Rm3OQERbDab7ffWm0NnYLuUjvCWD6gRg0ZUJ9wPmfH6a2hi43NmbqD0jb6o1ganooXKIkhGbW9jbucjJpkAmrHWKhLOhcqwTt42SUfL/WXgWHn5H0EwJSgicLCYH46AMmWBIbU+R4uqO0e2J9w7f/oyvinfX+PZe6WS+0FDMZy6/mO1GXhG0JNcPaDamDQyOaQ4JOqqRuqFMlEB59E96jhUUkZzb3xiF6HujDnR7maXl3rBaAm5OvZHeeFuw+ahQzeMZxRVpxTN2Lect53oGrJ4/f85Qs38v/6+BTp167kRg9n8i0BMqtS/N+zNIqHjfjA30rTHwoHk1oD773l0x67IWxzoZEioytRZC+UfNs0lxiPMlRqQJ8a+62bhN07AOMosn+z1hEmK/l5NsWeBglOmfOxgW9bHrjOevi/b/+/oXnj6bpSPhnCmcjEo5+t395xueb9QwKngfJYV3LdzWpWqBm3yh+zHiZAnp5jn/VYh8aNPc1ZEeKeNKe9iNoxlWpRt56IuTyy8nZbHqR5IcUXpc/QhDxozaTRg7nrbolHFamyJM87JNz+CZnUCRVNE7lzN6gSIUKuZx0TkyYteY87zQZmsHG6/g7SiSQMyhDaklmoCRsVYxNDsuQKjQVjj5Dlyrb3NO3wz59qtcV3vzTa+sWsjKAkQbyYauPe7mFd+VCQ1qM3E7lu2ng8s0soIU/NrynJvATmW9VMeoOrwb11lAqBWXRRwAA==", "shruti": "data:image/webp;base64,UklGRswDAABXRUJQVlA4IMADAACQGACdASpgAGAAPpU+mEgloy0lrxacMaASiWUAyySJDJtLhOYWI+RT9PEbGllffEUaAn8TY4MDyOY6xu5womA/QSnBjS4AbILctfkFqY8jcIkvBqIKTD+i2bGjgqPG9tE+jFmzNNlkF0FmwtefJCO3OAnDaz8UW5bsRZNBEgVv7MIvfRQa8TRT3gamX+aL00/lZZYsM6ipnjARXBfuJVoSGkKEo8hQ7UJl5Fyrd5OPNuYTx4BN0Ew8C3HAxlWvNSWMnfgBq4cFufHpnIgAAP7wozT4amd7SeeV6x5o3tsBIPkGdlaflJ/9K2xlA6VU59uysMKW7w/CtrVjD6edxpjp2i6BBGDyXVwYlN+8y8AHh9j2tck9jYrU/+LaoEoG8DVgNW2UuODmdrmD7L64Nr0wOcxVh3/dSnpf0uhXb05CVyb5xrFKqiD9dtHUSmskLzrKLjGbBZsYrfJya3UcWNvUowTUijbJfXwqfdPBskCBJQJwrR+ZCGXUlzKK+ePkisxwcrgdMJ/GQNfc4Oq0vs9Q4gPdmBs/7fUYjwJmOiTmereDfHa25CuamztXCKgwvcz/GUB8ZsP8OJZg/87XaxlbYaiodt17fl7kM5SL5LPhvBgFVToziXcIauiyiM3TzpwKO5GvUaq72NJSa3Ws4oL++Pj+BhKvExtetGAxTcj1IBE52fCVokqrbhwlcIXMOJpowdYGI7AxLfO0DuS2F535HdLLYbZyXPW1L2vCZzfN7bALSG52jpvIcDFhx6e+MzwUuvurYpRe/zSygAxaBlkzSPgVudH7K0vQOThv/HT24Qhw4pBzD01/2r/XXErx8K9xatRIEvf+CdASm02hrYK1YN8Rqb+EfHp6L0YwWEZwjv1RX8g3EZ6r4gzrjjQwch8hGPNyyAM8s57ABfbZ+ELhEOQo+mvOe+0jNihHQn3H6hP3pjqnHUeQdKs0I6svKi2FGMR3JGENg+DmSAs3rxiSBoKBwtJbo0fwiKA9IsaUeY/590t6y0bqPhQFb14xDz40O0/cK1FPcHEXQI3V0T9aDcA2yzubhSgGSBYtJp9bvJE1vPLpxN+tUXoUCAJ1EX0CDMaxqkDEpy4giQ003taE5xAhQA/eyLtczTAOTtvGwcakDD2wOjjI4sLxlRaB0XaT7pqY9coq/y0ptu4jTWMSaC+++fNWwJSjnft8V0qD72IhVGqy8H3uy/uqgsLwVbZWAmg1kEaZmNisXdv3vt2pbEEKf5JQDN/2FUTalVmPvT5YNegigoEFL9dXNuN4AAA=", "nupur": "data:image/webp;base64,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", "anulipi": "data:image/webp;base64,UklGRjwFAABXRUJQVlA4IDAFAADQHACdASpgAGAAPpVEmUmlo6IhKPmc6LASiWUAynAOPZsx5FaiLhWeBb30Qhvt5NpKnOQ22upEBBwyrZK1pIdBaiUCUlrnw2oVeAonCiRXDUnHzmj/ZuCSfgBZTaCPrBR4cSTKcFZv2hMg4q+dbz17FpXwEl1RUPV4yl+w85MLzVKcVU8Gy39xXE/KXF1JNdgLzz0JFVHM/8O7/7Pwf5NVycVdXhIwwLb/gb41qS6psOVhDnJmJb4YeTeE+sgrfPo0EUo7Q+d7POBI6zLlCzLsDsqeQA/0YmcISnvqAK/hnq+v/9s8NBcAOmVn7EF4AADXgSTl8BgtXDVTQCjdtdBDaRVBGcEfiDuQDlUJB3rObwBLDh7z0gRMqxeIRqVEUmy5ni92mqHn58qwnEJhEaf+faGG3+PBbjOM1qoua64Q6VaosuNNtxe5D8VTZSNdverNMKl4MR1O4rYP4cnwW2p8TW2IGv6UqLzFp7GHLgf/cPtEIxIW5AIAdFGUo0vRxUFToE2GegDNnAeTMvxgvf/2YF5QJMTVzs6PVmpRB1VvuHJt6rvtA+qDrD3gmYgcjK7nt8khgVlvOdUDdpApvlkiqjugu8KkpVqRU1CvxgEahaMxjmoLOjhDM7ZyPc8nOzRwnV6d7SYizPrDTHy7z1ZpQB78h77OsGywGnjljY+p/eWL8vaY3c0Snk4jLFiZ1hsL8rjfKCak7k36wJb0nhSeWDDuPxL64yq+9OS/AWd/Ynu/5/XsxT243a2DB5/U4z7I8hZLZmt6M+R/cikxPQdw0N/80FVwiUlsK8RYS93O6Pod7jIJFUTL3pFdOtVOEiiVZ642kuzjWuOoW5eQ4OUzu2O3n2Zqg7YyRRFuJvJiL5+cgepEpqqftPXrUCXMolAzj1nq7HKq03C/ccYiEUSEqtSh9WY7Q1o35ivLXeNCz/+BnRU/Dejdo2AFzkbTKFwc89E3Fh+7WFQ/4Bpc5vC5wt0wdsU/Lp4z1iSiZTqMoUGMt92eOkDe9ekqgDF4HWZ/6RJYcPcYrLGlFUWt5GzgRan7cP60aaWVqWPSooxWKBsVGejP6dt6QtPr4mVY4dlnhaSlkINI+FskAq7rMgd9KDfVdxPcY1QP8PFKUVQohQtnegNbDwEIpzvfsh1RfPLQbAxzzaYhCkGelo6LoJqpylfmpV6uW0hhhPVRpCil4ED0gcd7Yh7DaijWu5dQNKRl4QEsGyNUs+l2Wq0U0zY2XWRPrvpPyPp/n/7R9jg0bG3WKJ/f/4lvSr4+EBYgrBSEjkt6ZRAYP9ufHiLEjAvXQR0mdqQcRX0P/qyGBer/6eqMbuPx7MW/AbqwontjwwaTH5XM0okrUIu4YpsJFB5F/PVltbbKqL/3CQWrOA1IZaalUfXrKQmloRWkV2HvU1qshCDELOu6KjFXIzb7zwZvHwM63teMpYWRMwXeKYwOlMUiP6EChLGFsEP0xv9AnU+mzOTJ8k4TYxDuHcab1lrRi2p8h0eCZuWLyyK8WblF6btcNXfZp/lNj1euRoxc0wU+jdmrC8X5T5t8vifOHy/Ilfl3cXD5BJB4sf7PMfc+9X9L/UgmlAD3G0GEz8jNYN5E9v5Ahl2kK8/Ak9JPXlSZ1ob+ReRt64Yk6epNx0XiGRe2y6u4ixJ4Q2qV91z6Riyj5bdwRiPih7JBGhCdutY1WxKPOHK6L1m96E7WdIX+IR92mWdGjm62YjSYh19BMKmG/u9bPnELX5PrlFKMpXMplhDk1j2XJ1TjkAcmP2YAAA==", "mathew": "data:image/webp;base64,UklGRrQFAABXRUJQVlA4IKgFAACQHQCdASpgAGAAPpVEmkqlo6IhqBca8LASiWkA1FeFvfP5wgv7TeqrwHmDMONOvOx/7Hlh0JALHOJSw4w5ShmvkjF50tyZMzsS8FTgQfgFEmBLz16FXR/ui6I0Y8W1fWh9WGrwfqdvQeniRi5u2tB50/jo58F1nkNUMfFMBxuTCc2KkdYMaL4L3IKLj47boBqmosD9XWOczOhxel6EuiUrLBOUkejEPxMkIhLXZe+TXCSkoOwvUmRTuNrrp+NZdsXLpw7is/wRtkJupNMBTbZfHPgdC3GMbGaYrPft1YTFcENUGOaX07xXt114EPR9xX+oqy1wAAD++KrlWSYz3wAkJWB04rGks6lqRQMD832w+HzcQjiYhjwrs/m6FTHF55al9LNwljZ0sGxrozH+niFQ/oCz7bvB+VKipMOvOUDF+QkvpsXaYC6qoorKwqjtw0963pNzUUkGp4P43bUK7TsY5ImJikgZZ/LRA+WS4MGnKCUac/8WdVu26j+neS55O5JfaGVW4/k4p+3Cpxl3Btyl66I3zjb9nPaCQefHPlDr+UuIdpqXu1lvtVlZXu6YFewkZXR8Y5RT7zO6udsru0whLUSimS4nLGSZRhb1+5AU8ubr3ca2CaFFDSEmkLyToBt3anP8PuGm65y43RoBbYZWcZPK8DCW2iMvxBfcxO8H8O03bQkN+iWAg1iuxX5mORT1r7eOzMMGsY4hlQlsJxl1r2FyFsGgRPAr31iAZqG7tqYQrIfBKl/OLSBKLXlnYgfGebiRVj8vee32lyq7k7k4HOnq69Qm2BEJU9ttLmqrTGrvMkb8qv9poFnq99N7H1KY8DMmo0IPiaAWEQW6z62GujltAzySMfOl/YRUpB8J5XeRGIDn7lhmR4iyw5/4COy63/VweFsRg6+QhezVl/nfY1z5c6FJ6RHXOcX1HDsFwMq1XBeGDC/AxOMwjf4AMbscMPARwiC2K+MZgzIHbhk4H9fxFsBcSGGpp/kHq2AsZ6nLVbrNzI1lttj7cWv+GM9N5z/U5CBtT40aqMamddX7RdlEwqNSvaTBkED/vx9fooJov1nYIwK/aRrX5gy7JIzYEJUtU59lHGp7uPu6pXeirGGtMWdDhI0XUCTjSZIxRFrQn5xuRgJgEQFBhms4gSnaWd1Z+AqvJye0sp6pMmw71/eLyXNJV/LDaUPCIaQ8CSjENa+WDW7XXg+XeYPwEyZryyasymlWFlixeK+E2e5GDOyw/WQZnUvpr0O64S7SbDtg0HXzGC9mKPE1wucUE8Gl6JxSALcBWeqG1e9leE9WxpEFWJEyLFmeBCEEF5EH1v1QGXlupCN8T9XrLQRB1CaYD/KtyW6T0PwE/M+JqWIj7g/RdyiDqQDAaWmYia8kBUpunKFrMWUkhhMVR7F894d9wU7B64/H06ICOqJMA4fjWL/dCMchjbnCPcD24qHu9+BwhGo0BZlsFbD7fHtLMKpSBLDswQMKvHdsWly7IgoHA/jp0wsfCLL+zwPJ2G1FLuXRi74FTS94YTikbRGqeq5UTUQNUfNGq5T+nHqmgcbSgZetzL0YXHcr8pANEFp9Am5gze+mjhLQWen+LGZLpdrKIfyiewdrUtImp4oj3AwNhkCqdyniHfh7vzLNxAtpi5Lyctko2kAOce2uB+ZoICokOxyLHXIZi/4+xjyQVi19oiGzzCaX/orVcmtLzAt8ATYk2wgJRuqwbMfzaPFNi9Hwhchw7PiCs80VzH96jSFm79XZaRgf2rr5mrAhtPJi1itEoBas5puRSLQJqCEnuwHS8nH5BLV5QUUI1nT6HmWeYl0RX7igGwpyICO9+r84ylIdDrynljWWD4VLylxwA46FkH3wPhdtndEh7klD6pujNBkSmHj/Zm2ZE3+DVt43h7P+F4mnXA/t8g5UlWxCMJaBInwxCKoAAA==", "aparna": "data:image/webp;base64,UklGRoQEAABXRUJQVlA4IHgEAACwFwCdASpgAGAAPpVAmkilo6KhLHN8uLASiWUAzs2ho2alN/ytoKdvcEMvT8x5vacuaT5Z6r40c9/9XOKGi6qkCZeuukvB6VBVgo2Z5zM42BnOrPnN3dPbESFqUZOjT3EPDrFlIMxAJnb5Jr343u70H6GtaFSLM6DIASrCgkZZ7dDY2VXc/lnvRiY5v995+d1V9nxyU+XX4oZ8/hAaxD09mTw1G6butDM0VlB4gOsKrJAV3CVVDSN5rDzpRrrJ1F8ILvA04UAA/vuUBnsrBGm7kFP+fzirIejWzfhohdFXJBzmpXQ4T9QwnHYdptR6usdNhWUWPX6bNkIY2oSHUlsMG5p4dq0NbKNVwOvkXQgEnlUq+aN9vwjk6oC7xZg+Hx6GBVUNH4t371Xn8iBloMvTLu4XpoenDtPLnNiIf7FCwH7H38ePKT7uxOJ5Xf/ZCeb8NURbT0kreUrZSWKww7t6hdpEPlUpEwTrHt0qbyKKD3wVeSfD6zVBQdE39ty1lSRpewm/0fgKLLZXrd+bPtSh/R7/lDE4e0bg41wvmtwqjnhlNkXEJsx603rKeA5XPNSDwfOfCwYx9VTYAGIKjh1O0wVX2We+DBvwUqGgaT+2+qv+PYyKJ75A0+2PeadzLCHcTE8qEuPzBeehzOom2K/JHP0bB3piRC7WcmbNEHtJIlkXECuWZWv2YTZDyHqGUcmQrnRJ+nRZyV/TFhk5ixcHXGYgGHim7tFFyYB/a7NZm5wV2RNysf3tfpByM3YpVA1KSH1/ABhN7vbZmRz45Hh4UGlAB9FUtJqbuq1odCuj66ryYSX7562ut74WArHBiQERGTkU1w78S4kyKE5CDwXwx1NhP+vRQAAHQv7VkD9MzPHYXk53Vno3me6ULUN/Grx0PUQtVQ0HLal77JtRDk/2QyqZL36aWKM73P4i9mNIPk5jaTDx99hN96yhxIi7Dk3NNgIToV8alxOvpwMMrXsZEKoDKBvlaUrI3tO7cXFnrLWgOlOCA2N7s+oVNz7I6t728iTkGOPxasdOrJgrTskfL/37sSr4AgLTsbuxhiWuoWppqykis/Yuxeg7xo7x4FRZdAcD+qxYkZASBWa4mE+Ss4y/kror5e7nTged83vIoxZ0Th8oyjlIaE0RSCuXrtQjnsBc58Zzl8YnVQ8TUXedqjsb17ddKjd1cWejO9ziOGxGX22KZ7IXnCH2dm1Xc1g/y2YKgkfDI0VbzdywRs+bW0T1gA8LfXa/OlwK28LQXLqTX85YVXuqoGx2m4+3a26iHdWvTfrx5dVmdn6FkmE4l6qbLaqDOSv+90IFbikzwylsbGtb6efqGr3cnNi4zh4eQaVEwANglkxrHhevZ6TROZSOQ406FxnstBSfSX0UTYd6+aMz38Iw0Q0KgsY5Fr4cz9Ak0aTVFZ24+BUAyRHpqfPAizZa6cu9LCQebn84KmmtUiyaY/1kG0N3yJduosR2TRcpOxgyGJdAfW0JucNzeqX/AmkGJVUPldM5nZg04IB9ctMyAAAA", "nitin": "data:image/webp;base64,UklGRmYEAABXRUJQVlA4IFoEAAAwFgCdASpgAGAAPpVAmUglpCKhMdQLgLASiWMA0mRiUnQnb5Y0CumrymGz1WiLKBCNCDGNI+fVwA8xu00Kb9Qmdw+NeWZw6PMR44tXKGY5qWasDmk8kaZPbjhCFzpPZyyBXs1z8TvPjyaN2tjOSfDZWwxmQ1PS+toqfy/Bk4M/4ZIzLauPYDoNSnXN3cI+Lq+Gh6lVPbkepCH7tlnAdb+naldrzdycGMGuWNdzAW1EZIl4NGgLm7CJ5EAA/vv2DwHwSm3gsm/37Fhfhz4GQ4ApJa87c1+bH0tYV/0nJ+74jQs9wt7mkK7uged5je11gsaGrmriCzWbEUlRBTr1VYFF+9l++DQNRuGLwmVWDamBUb+BERKHm6zUMZEgPaTWh4uLr0pLVM9Uv3ayDxXlUPnRw6mHIwce9tik3gBc8IU8KCcNou0hlbJunOPOl73FCzvmzvGI8IhGpNlT8aH2ql/LKAFkRrccF1lzvWyRAeMqlnCeaJRzLiXsLYw3mI1NlOGEikW5LCGwZfZUqR9She6BC8h50VufcD1FAL6SNA2n17qn9V4RVlWG0lHo8fn89h38TtWf52xPuvQPTydy0oGWOdJ7qH9ZMBjtykm9TmymH0fnWzJkRczQq4R6Ybndy5TJRejqpT2/z89KYl1fkRKA42t1ARRTGcspyHnwKxd5e/uE5ZDUfpNGR+hfFnqFIy+lXdhxo2Av2fkvZ+1N5smV8KAxG6UKCMTP7045JxblrKBS/zW636oDKwFV7SeUapsGSCRe9xfgarFihmibYjuFk3sTbEEhhI1BrycyWRtUM4Fqh0QQEribtkjkZV2kN1PH37sB0FcnXFy2y/IPzhnPEADqiLWJxZ3igwmwAUrMHO7LyjnhYOb/DnjcQMjzexwgOBUDcsKDaUClimgQ4uxidevLzLQ1fhT6nx5N4GQFQG8Nk5eKtXzA983RJZYSbyMp+HWwRJbGO8b3LXP9USxHkNVleZHpdObkUzA1W6oLIsGfTLMZe8agvoDygGpU+zr63cyWohSBpGTGwO+FifwReYtnn6S22N27Ld2+GaB+j+T4xIiVncznwEFc/2oSCahLyn/WMVaMTC96c/8X+oKQjmI6IBGclxgt35zhn9KAlp1yTe7pI9OjzWXH0m7P5meR77azf1ZMle9jQprONHoy5wl4xNS5gA8orDGcKhv4fo+A89PVsRJ0hWXuOFtJev9V++B+d4WD/fMiqdbmP5sEJSv8uP0XN8159c/cnWp5pdP+L7cwDATbBc3BtoCxp4NOSuyu0lyl3y1wjGjcaU2pDTkQNoro35fqs3CERDNhjNgEtOkvJ35r+wa7tCJ14AWSRl40nTHRv4BrCLoodbxT65lv3GHq7YpBHEK8gHM4xSPSu6G0pialNdmR9hEN6oc6m2ILlCvp8nBkP1O/a9Ovz+/nbScSHYcO0jOyQxUPzRLuz5ZSGbIt3ABggt9qS0/PD9/kFOGogAAA", "khyati": "data:image/webp;base64,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", "sudha": "data:image/webp;base64,UklGRtgDAABXRUJQVlA4IMwDAADQEACdASpAAEAAPpU8mUiloyKhKhmdyLASiWUAs7SJCbxTdK/luAjG3nFy2dNa0uZ//QY7CCQuXTltRh9VmXxN91XSbs/4KZHaboGT6i/26vBdOkLU64CEIdkCylQtGp8h9qIUkkJqkineVEW1v/6vD6v64R4oal/SL/JafHcxVoV9FeXp04TWYx4w+3auAAD+8Yz1bVueMJd5rQMbjQgHZ5hYNX1/WXIhIbrDBXbg2N7c0U0GpZJq8KXsM4V5ghhG4jaWSW99pEnd0mSvhULnbyUFy7q3KpGqDr/78YeMLKKvXCSJ+0p0a3we/f4tQ42zjV5lGO6jgU7/aDaI4nY8+Xy4Zd71JOudOv/Uae1uiB01/estKqTwnCZarkhAX2JUYDZcMeft+Ppgg35SVSFKeKwBnmeAukpLS2kBcViyu/h/2V6dc65U5Hd37Zi1Y4YMBdoMJX1+ylKPNF5rOhKOgfnA76nzpZtmiqaadlCGd7gInW7oTFMLFv7Sl1LKYbWqOVghfXz9H/qfV8QbDd+AdenumoU14+5yDlMzLsT8CfzGkDZRAJXL/a8NrbY+7Xj22fGAhdWYb/AnxZecJFlb1hA5k56/JdSDVzzsvHluiWzoMYyVkdzUYGeGqFjOmBe1NrFSy0NbZJ7KeU0kPoHyMvd/DDkDSUrMo8dAtsXZShpLhVhGzhvs9s41r5R6AMQ4RwLwBdLcqqbP7J08dR/1DIDDgxconXCzySIzRKrHAtP0s7Q8dfzjIclC7ycpuBVt55j5zChxgZlhpn9yC5CUoGtn2J3an9aIZYWXN5jTVfiCQY38pnsKrF9VZZOCa5QTF5qlcoZQcg8TJ4zyE/SX0YpaK34ujod5jsCuprdV49uSKRPMlXWTauH8Z9ZphTNw2RJCAjhwLnXJVW5zrIm1vjJM0XJOg41cIrdPfw3P/kDrRPSx1kJmTuOt8U2rKwft8qbVESzAmcVX7Psv4xRCzqhquYMlYgZS5jYXEF5qnPUNtx5aG85iZAISDR/AP8Kk7zuGqyYiROsKLG4mwtKU787eb2QxNbjE4MjUZV2R+lh2gD27xj+4V22VGf09Zc3COHPKMeGeiwe3HMiPJ8MwG5bOX4FbmOVQtYh6wzqzMJvVyYS1Bpv7erpolW1OLqTC7UzwCzlC4x7Eq/emzaQLF5rCavb32wdID3HaiX6gYe8YELGJmaBA8EAvJctbZ9ambeV6/d3/xE17luaej3Z6j5vAbA/STsVdhSBPQHI5Cj0+JkFvagjz8uOFdFledSnORa/A1Cnb6Gg6gAA=", "elan": "data:image/webp;base64,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"};
+  document.querySelectorAll("[data-ph]").forEach(el=>{const u=PH[el.dataset.ph];if(u){el.style.backgroundImage=`url(${u})`;el.classList.add("ph");el.setAttribute("aria-label",el.textContent);el.textContent="";}});
+
+  /* cadence grid */
+  const g=document.getElementById("cadGrid");g.classList.add("group");
+  let h='<div></div><div></div>'+["Q1","Q2","Q3","Q4"].map(q=>`<div class="qh">${q}</div>`).join("");
+  CAD.forEach(r=>{
+    if(r.length===1){h+=`<div class="rl gh">${esc(r[0])}</div>`;return;}
+    const [lab,f]=r;
+    h+=`<div class="rl">${esc(lab)}</div><div class="rf"><span class="freq">${f}</span></div>`;
+    for(let m=0;m<12;m++){
+      let d="";
+      if(f==="Monthly")d='<i class="dot"></i>';
+      else if(f==="Fortnightly")d='<i class="dot sm"></i><i class="dot sm"></i>';
+      else if(f==="Quarterly"&&m%3===1)d='<i class="dot"></i>';
+      else if(f==="Annually"&&m===10)d='<i class="dot yr"></i>';
+      else if(f==="As sponsored"&&(m===4||m===9))d='<i class="dot sp"></i>';
+      h+=`<div class="cell${m%3===0?' q':''}" data-m="${m}">${d}</div>`;
+    }
+  });
+  g.innerHTML=h;
+
+  function runCadence(){
+    const cad=document.getElementById("cad"),sw=document.getElementById("sweep");
+    cad.classList.remove("run");
+    const cells=[...g.querySelectorAll(".cell")];
+    cells.forEach(c=>c.querySelectorAll(".dot").forEach(d=>d.style.transitionDelay="0s"));
+    if(reduce){cad.classList.add("run");return;}
+    const first=g.querySelector('.cell[data-m="0"]'),last=g.querySelector('.cell[data-m="11"]');
+    const cr=cad.getBoundingClientRect(),a=first.getBoundingClientRect().left-cr.left,b=last.getBoundingClientRect().right-cr.left;
+    const dur=1800;
+    cells.forEach(c=>{const m=+c.dataset.m;c.querySelectorAll(".dot").forEach((d,i)=>d.style.transitionDelay=(150+m/12*dur+i*60)+"ms");});
+    sw.style.transition="none";sw.style.left=a+"px";sw.style.opacity="0";
+    void sw.offsetWidth;
+    sw.style.transition=`left ${dur}ms linear, opacity .3s`;sw.style.opacity=".9";sw.style.left=b+"px";
+    setTimeout(()=>{sw.style.opacity="0"},dur+150);
+    requestAnimationFrame(()=>cad.classList.add("run"));
+  }
+
+  /* title strands: three threads converge and braid, each keeping its colour */
+  const STR=[{y:40,c:"#C98BFF",ph:0},{y:130,c:"#A100FF",ph:2*Math.PI/3},{y:220,c:"#7500C0",ph:4*Math.PI/3}];
+  const CY=128,X0=230,X1=760,AMP=13,PER=230;
+  const ease=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
+  function strandD(o){
+    let d="";
+    for(let x=0;x<=1400;x+=5){
+      const braid=CY+AMP*ease((x-X1+160)/320)*Math.sin(2*Math.PI*(x-X1)/PER+o.ph);
+      const k=ease((x-X0)/(X1-X0));
+      const y=o.y+(braid-o.y)*k;
+      d+=(x?"L":"M")+x+" "+y.toFixed(2);
+    }
+    return d;
+  }
+  const SG=document.getElementById("strandG");
+  SG.innerHTML=STR.map(o=>`<path class="glow" stroke="${o.c}" d="${strandD(o)}"/>`).join("")
+    +STR.map(o=>`<path class="s" stroke="${o.c}" d="${strandD(o)}"/>`).join("")
+    +STR.map(o=>`<circle class="bead" r="4.5" fill="${o.c}" stroke="#fff" stroke-width="2"/>`).join("");
+  let strandRAF=0;
+  function runStrands(){
+    const paths=[...SG.querySelectorAll(".s")],glows=[...SG.querySelectorAll(".glow")],beads=[...SG.querySelectorAll(".bead")];
+    cancelAnimationFrame(strandRAF);
+    if(reduce){beads.forEach(b=>b.style.opacity=0);return;}
+    const L=paths.map(p=>p.getTotalLength());
+    [...paths,...glows].forEach((p,i)=>{const l=L[i%3];p.style.transition="none";p.style.strokeDasharray=l;p.style.strokeDashoffset=l;});
+    beads.forEach(b=>b.style.opacity=0);
+    void SG.getBoundingClientRect();
+    [...paths,...glows].forEach((p,i)=>{p.style.transition=`stroke-dashoffset 2.6s cubic-bezier(.45,0,.25,1) ${(i%3)*.15}s`;p.style.strokeDashoffset=0;});
+    const T=7000,start=performance.now()+2900;
+    const step=now=>{
+      if(cur!==0)return;
+      if(now>=start){
+        beads.forEach((b,i)=>{
+          const k=(((now-start)/T)+i/3)%1;
+          const pt=paths[i].getPointAtLength(k*L[i]);
+          b.setAttribute("cx",pt.x);b.setAttribute("cy",pt.y);
+          b.style.opacity=Math.min(1,k*12,(1-k)*8).toFixed(2);
+        });
+      }
+      strandRAF=requestAnimationFrame(step);
+    };
+    strandRAF=requestAnimationFrame(step);
+  }
+
+  /* Vision & ambition stepper */
+  const GOALS=[
+    ["Building a connected food industry community","Connecting practitioners across food-related sectors, geographies, accounts, and career levels, and tying together our capabilities and client work across the full value chain."],
+    ["Leveraging and sharing real client experience","Grounding the community in proven approaches from actual client engagements and cross-fertilizing ideas across accounts."],
+    ["Developing talent and industry expertise","Creating opportunities for practitioners to learn from each other and from experienced leaders."],
+    ["Strengthening competitive positioning","Increasing visibility in industry ecosystems, improving engagement with events and trade associations, and developing external, client-ready points of view we can proactively take to market."]];
+  const va=document.getElementById("va");
+  document.getElementById("vaStage").innerHTML=GOALS.map((g,i)=>`<div class="va-focus"><span class="big">${i+1}</span><div><div class="va-lead">Our goals are to grow our food industry through…</div><h3>${esc(g[0])}</h3><p>${esc(g[1])}</p></div></div>`).join("");
+  document.getElementById("vaRail").innerHTML=GOALS.map((g,i)=>`<button class="va-chip" data-k="${i+1}"><span class="n">${i+1}</span><span>${esc(g[0])}</span></button>`).join("");
+  document.getElementById("vaGrid").innerHTML=GOALS.map((g,i)=>`<div class="va-card" style="transition-delay:${i*90}ms"><span class="n">${i+1}</span><h4>${esc(g[0])}</h4><p>${esc(g[1])}</p></div>`).join("");
+  document.getElementById("vaTicks").innerHTML="<i></i>".repeat(6);
+  const vaStep={step:0,max:5,set(k){
+    this.step=k;va.dataset.step=k;
+    [...document.querySelectorAll(".va-focus")].forEach((f,i)=>{f.classList.toggle("on",i+1===k);f.classList.toggle("past",i+1<k);});
+    [...document.querySelectorAll(".va-chip")].forEach((c,i)=>{c.classList.toggle("seen",i+1<=k);c.classList.toggle("cur",i+1===k);});
+    [...document.querySelectorAll("#vaTicks i")].forEach((t,i)=>t.classList.toggle("on",i<=k));
+  }};
+  document.getElementById("v-amb").stepper=vaStep;
+  va.addEventListener("click",e=>{
+    const c=e.target.closest(".va-chip.seen");if(c){vaStep.set(+c.dataset.k);return;}
+    if(e.target.closest('[data-act="next"]'))stepOrGo(1);
+  });
+
+  /* navigation */
+  const views=[...document.querySelectorAll(".view")];
+  const nav=document.getElementById("nav"),prog=document.getElementById("prog");
+  nav.innerHTML=SECTIONS.map(s=>`<button data-s="${s[0]}"><i>${s[0]}</i>${esc(s[1])}</button>`).join("");
+  prog.innerHTML=views.map((v,i)=>`<button aria-label="${v.dataset.label}" class="${i>0&&views[i-1].dataset.sec!==v.dataset.sec?'gap':''}"></button>`).join("");
+  let cur=-1;
+  function stepOrGo(d){
+    const st=views[cur]&&views[cur].stepper;
+    if(st){const k=st.step+d;if(k>=0&&k<=st.max){st.set(k);return;}}
+    go(cur+d,d);
+  }
+  function go(i,dir){
+    i=Math.max(0,Math.min(views.length-1,i));if(i===cur)return;
+    if(views[i].stepper)views[i].stepper.set(dir<0?views[i].stepper.max:0);
+    views.forEach((v,k)=>v.classList.toggle("on",k===i));
+    cur=i;const v=views[i];v.scrollTop=0;
+    nav.querySelectorAll("button").forEach(b=>b.setAttribute("aria-current",b.dataset.s===v.dataset.sec));
+    [...prog.children].forEach((b,k)=>{b.classList.toggle("on",k===i);b.classList.toggle("done",k<i);});
+    const sec=SECTIONS.find(s=>s[0]===v.dataset.sec);
+    document.getElementById("secLabel").textContent=sec[0]+"  "+(v.dataset.label===sec[1]?sec[1]:v.dataset.label.replace(/&amp;/g,"&"));
+    const idxs=views.map((x,k)=>k).filter(k=>views[k].dataset.sec===v.dataset.sec);
+    const sub=document.getElementById("subnav");
+    sub.innerHTML=idxs.map((k,j)=>(j?'<span class="sep"></span>':'')+`<button data-i="${k}" aria-current="${k===i}" class="${k<i?'done':''}"><i>${sec[0]}.${j+1}</i>${views[k].dataset.label}</button>`).join("")+`<span class="count">${idxs.indexOf(i)+1} of ${idxs.length}</span>`;
+    document.getElementById("prev").disabled=i===0;document.getElementById("next").disabled=i===views.length-1;
+    try{history.replaceState(null,"","#"+i);}catch(_){}
+    if(i===0)runStrands();
+    if(v.id==="v-cad")setTimeout(runCadence,250);
+  }
+  nav.addEventListener("click",e=>{const b=e.target.closest("button");if(b)go(views.findIndex(v=>v.dataset.sec===b.dataset.s));});
+  document.getElementById("subnav").addEventListener("click",e=>{const b=e.target.closest("button[data-i]");if(b)go(+b.dataset.i);});
+  prog.addEventListener("click",e=>{const i=[...prog.children].indexOf(e.target);if(i>=0)go(i);});
+  document.getElementById("prev").onclick=()=>stepOrGo(-1);
+  document.getElementById("next").onclick=()=>stepOrGo(1);
+  document.querySelectorAll("[data-jump]").forEach(r=>r.addEventListener("click",()=>go(views.findIndex(v=>v.dataset.sec===r.dataset.jump))));
+  document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>{const t=b.dataset.goto;go(views.findIndex(v=>v.dataset.label.replace(/&amp;/g,"&")===t.replace(/&amp;/g,"&")));}));
+  document.addEventListener("keydown",e=>{
+    if(e.target.closest("input,textarea"))return;
+    if(["ArrowRight","PageDown"].includes(e.key)||(e.key===" "&&!e.shiftKey)){e.preventDefault();stepOrGo(1);}
+    else if(["ArrowLeft","PageUp"].includes(e.key)){e.preventDefault();stepOrGo(-1);}
+    else if(e.key==="Home")go(0);else if(e.key==="End")go(views.length-1);
+  });
+  let start=NaN;try{start=parseInt(location.hash.slice(1));}catch(_){}go(isNaN(start)?0:start);
+})();
+</script>
+</body>
+</html>
